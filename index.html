@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<body>
+		<fb:login-button autologoutlink="true" scope="publish_stream"></fb:login-button>
+		<div id="fb-root"></div>
+		{% if user %}
+		<p><a href="local:///index.html?access_token={{user.access_token}}">Back to Pusoy</a></p>
+		<form action="/create" method="post">
+			<input type="hidden" name="access_token" value="{{user.access_token}}">
+			<input type="hidden" name="vs_fbid" value="518620151">
+			<input type="submit" value="Create Game">
+		</form>
+		<form action="/friends" method="post">
+			<input type="hidden" name="access_token" value="{{user.access_token}}">
+			<input type="submit" value="Get Friends">
+		</form>
+		<form action="/games" method="post">
+			<input type="hidden" name="access_token" value="{{user.access_token}}">
+			<input type="submit" value="Get Games">
+		</form>
+		<form action="/play" method="post">
+			<input type="hidden" name="access_token" value="{{user.access_token}}">
+			<input type="hidden" name="game_id" value="1">
+			<input type="hidden" name="hand" value="{&#34;top&#34;: [1, 2, 3], &#34;middle&#34;: [4, 5, 6, 7, 8], &#34;bottom&#34;: [9, 10, 11, 12, 13]}">
+			<input type="submit" value="Play Game">
+		</form>
+		{% endif %}
+		<script>
+			window.fbAsyncInit = function() {
+				FB.init({
+					appId : '{{ facebook_app_id }}',
+					status : true,
+					cookie : true,
+					xfbml : true
+				});
+				FB.Event.subscribe('{% if current_user %}auth.logout{% else %}auth.login{% endif %}', function(response) {
+					window.location.reload();
+				});
+			}; ( function() {
+					var e = document.createElement('script');
+					e.type = 'text/javascript';
+					e.src = document.location.protocol + '//connect.facebook.net/en_US/all.js';
+					e.async = true;
+					document.getElementById('fb-root').appendChild(e);
+				}());
+		</script>
+	</body>
+</html>

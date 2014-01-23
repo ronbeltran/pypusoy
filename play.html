@@ -1,0 +1,19 @@
+<html>
+	<body>
+		<p>
+			Your Deal:
+			<br />
+			{% for card in deal %}
+			<img src="cards/{{card}}.png" width="47" height="64" />
+			{% endfor %}
+		</p>
+		<form action="/show" method="post">
+			<div>
+				<textarea name="content" rows="3" cols="60"></textarea>
+			</div>			
+			<div>
+				<input type="submit" value="Submit Hand">
+			</div>
+		</form>
+	</body>
+</html>

@@ -1,0 +1,21 @@
+application: pusoyqa
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: true
+
+handlers:
+- url: /cards
+  static_dir: cards
+
+- url: /crossdomain.xml
+  mime_type: text/xml
+  static_files: crossdomain.xml
+  upload: crossdomain.xml
+
+- url: /.*
+  script: pusoy.app
+  
+libraries:
+- name: jinja2
+  version: latest
