@@ -1,5 +1,3 @@
-from google.appengine.ext import db
-from random import shuffle
 import FiveEval
 import facebook
 import jinja2
@@ -8,8 +6,11 @@ import os
 import urllib2
 import webapp2
 
-FACEBOOK_APP_ID = "382044341830181"
-FACEBOOK_APP_SECRET = "64eabb93544eb7da72401d3c0b59bce4"
+from google.appengine.ext import db
+from random import shuffle
+
+FACEBOOK_APP_ID = "CHANGE-ME"
+FACEBOOK_APP_SECRET = "CHANGE-ME"
 
 #0 = Ace of Spades
 #1 = Ace of Hearts
@@ -21,7 +22,7 @@ FACEBOOK_APP_SECRET = "64eabb93544eb7da72401d3c0b59bce4"
 #6 = King of Diamonds
 #7 = King of Clubs
 
-jinja_environment = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
+jinja_environment = jinja2.Environment(loader=jinja2.FileSystemLoader("templates"))
 
 def game_key(game_name=None):
     return db.Key.from_path('Games', game_name or 'default_game')
@@ -34,7 +35,7 @@ class Game(db.Model):
     fbids = db.StringListProperty()
     hands = db.StringProperty()
     winner = db.StringProperty()
-    
+
 class User(db.Model):
     access_token = db.StringProperty(required=True)
     email = db.StringProperty(required=True)
@@ -51,7 +52,7 @@ def create_game(fbid, vs_fbid):
     del deck[:13]
     vs_deal = deck[:13]
     del deck[:13]
-    
+
     # create the game object
     game = Game()
     game.active_player = fbid
@@ -60,19 +61,19 @@ def create_game(fbid, vs_fbid):
     game.fbids = [fbid, vs_fbid]
     game.hands = json.dumps({fbid:deal, vs_fbid:vs_deal})
     game.put() # save the game object to the datastore
-    
-    return {'deal':deal, 'game_id': game.key().id()} # return the dealt hand to the game creator 
+
+    return {'deal':deal, 'game_id': game.key().id()} # return the dealt hand to the game creator
 
 def calculate_hand_value(hand):
     top = hand["top"]
     middle = hand["middle"]
     bottom = hand["bottom"]
     fiveEval = FiveEval.FiveEval()
-    
+
     top_value = top[0] + top[1] + top[2]
     middle_value = fiveEval.getRankOfFive(middle[0], middle[1], middle[2], middle[3], middle[4]) * 2
     bottom_value = fiveEval.getRankOfFive(bottom[0], bottom[1], bottom[2], bottom[3], bottom[4]) * 3
-    
+
     return top_value + middle_value + bottom_value
 
 class BaseHandler(webapp2.RequestHandler):
@@ -87,21 +88,21 @@ class BaseHandler(webapp2.RequestHandler):
                 user = User.get_by_key_name(cookie["uid"])
                 if not user:
                     graph = facebook.GraphAPI(cookie["access_token"])
-                    profile = graph.get_object(id="me", fields="id, name, username, picture")
+                    profile = graph.get_object(id="me", fields="id, name, email, picture")
                     #friends = graph.get_connections("me", "friends")
                     user = User(access_token=cookie["access_token"],
-                                email=profile["username"] + "@facebook.com",
+                                email=profile["email"],
                                 fbid=str(profile["id"]),
                                 key_name=str(profile["id"]),
                                 name=profile["name"],
-                                picture=profile["picture"])
+                                picture=profile["picture"]["data"].get("url"))
                     user.put()
                 elif user.access_token != cookie["access_token"]:
                     user.access_token = cookie["access_token"]
                     user.put()
                 self._current_user = user
         return self._current_user
-    
+
 class Create(BaseHandler):
     def post(self):
         if self.current_user:
@@ -116,7 +117,7 @@ class Create(BaseHandler):
                 }
                 template = jinja_environment.get_template('index.html')
                 self.response.out.write(template.render(template_values))
-            
+
 class Games(BaseHandler):
     def post(self):
         if self.current_user:
@@ -158,17 +159,17 @@ class Play(BaseHandler):
             if self.current_user.access_token == self.request.get('access_token'):
                 game = Game.get_by_id(int(self.request.get('game_id')))
                 hand = json.loads(self.request.get('hand'))
-                
+
                 # determine opponent's fbid
                 if game.fbids[0] == self.current_user.fbid:
                     vs_fbid = game.fbids[1]
                 else:
                     vs_fbid = game.fbids[0]
-                    
+
                 # determine if opponent has already played his hand
                 hands = json.loads(game.hands)
                 vs_hand = hands[vs_fbid]
-                
+
                 #if hasattr(vs_hand, 'top'):
                 if 'top' in vs_hand:
                     # already played, evaluate who's the winner
@@ -212,7 +213,7 @@ class MainPage(BaseHandler):
         }
         template = jinja_environment.get_template('index.html')
         self.response.out.write(template.render(template_values))
-        
+
 app = webapp2.WSGIApplication([('/', MainPage),
                                ('/create', Create),
                                ('/friends', Friends),

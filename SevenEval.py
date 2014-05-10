@@ -20,9 +20,9 @@ class SevenEval :
 		self.flushRankArray = [0] * (Constants.MAX_SEVEN_FLUSH_KEY_INT + 1)
 		self.deckcardsKey = [0] * Constants.DECK_SIZE
 		self.deckcardsFlush = [0] * Constants.DECK_SIZE
-		self.deckcardsSuit = [0] * Constants.DECK_SIZE	
+		self.deckcardsSuit = [0] * Constants.DECK_SIZE
 		self.flushCheck = [0] * (Constants.MAX_FLUSH_CHECK_SUM + 1)
-		
+
 		face = [Constants.ACE, Constants.KING, Constants.QUEEN, Constants.JACK, Constants.TEN,
 				Constants.NINE, Constants.EIGHT, Constants.SEVEN, Constants.SIX, Constants.FIVE,
 				Constants.FOUR, Constants.THREE, Constants.TWO]
@@ -48,12 +48,12 @@ class SevenEval :
 			self.deckcardsSuit[4*n + 1]	= Constants.HEART
 			self.deckcardsSuit[4*n + 2]	= Constants.DIAMOND
 			self.deckcardsSuit[4*n + 3]	= Constants.CLUB
-		
+
 		# Track increments.
 		count = 0
-		
+
 		fiveCardEvaluator = FiveEval()
-		
+
 		# High card.
 		for i in range(1, Constants.NUMBER_OF_FACES) :
 			for j in range(1, i+1) :
@@ -82,7 +82,7 @@ class SevenEval :
 									key = faceFlush[i] + faceFlush[j] + faceFlush[k] + faceFlush[l] + faceFlush[m] + faceFlush[n] + faceFlush[p]
 									rank = fiveCardEvaluator.getRankOfSeven(4*i, 4*j, 4*k, 4*l, 4*m, 4*n, 4*p)
 									self.flushRankArray[key] = rank
-									
+
 		# Only 6 same suit.
 		for i in range(5, Constants.NUMBER_OF_FACES) :
 			for j in range(4, i) :
@@ -92,12 +92,12 @@ class SevenEval :
 							for n in range(0, m) :
 								count += 1
 								key = faceFlush[i] + faceFlush[j] + faceFlush[k] + faceFlush[l] + faceFlush[m] + faceFlush[n]
-								
+
 								# The Two of clubs is the card at index 51; the other six
 								# cards all have the spade suit.
 								rank = fiveCardEvaluator.getRankOfSeven(4*i, 4*j, 4*k, 4*l, 4*m, 4*n, 51)
 								self.flushRankArray[key] = rank
-				
+
 		# Only 5 same suit.
 		for i in range(4, Constants.NUMBER_OF_FACES) :
 			for j in range(3, i) :
@@ -108,7 +108,7 @@ class SevenEval :
 							key = faceFlush[i] + faceFlush[j] + faceFlush[k] + faceFlush[l] + faceFlush[m]
 							rank = fiveCardEvaluator.getRankOfFive(4*i, 4*j, 4*k, 4*l, 4*m);
 							self.flushRankArray[key] = rank
-			
+
 		##
 		# Initialise flush checks.
 		SUIT_COUNT = 0
@@ -117,7 +117,7 @@ class SevenEval :
 		SUIT_KEY = Constants.SPADE
 		suits = [Constants.SPADE, Constants.HEART, Constants.DIAMOND, Constants.CLUB]
 
-		# Initialise all entries of flushCheck[] to UNVERIFIED, as yet unchecked.	
+		# Initialise all entries of flushCheck[] to UNVERIFIED, as yet unchecked.
 		self.flushCheck = [Constants.UNVERIFIED] * (Constants.MAX_FLUSH_CHECK_SUM + 1)
 
 		# 7-card flush.
@@ -134,7 +134,7 @@ class SevenEval :
 									SUIT_KEY = suits[card_1] + suits[card_2] + suits[card_3] + \
 											   suits[card_4] + suits[card_5] + suits[card_6] + \
 											   suits[card_7]
-									
+
 									if self.flushCheck[SUIT_KEY] == Constants.UNVERIFIED :
 										while CARDS_MATCHED_SO_FAR < 3 and FLUSH_SUIT_INDEX < 4 :
 											FLUSH_SUIT_INDEX += 1
@@ -151,13 +151,13 @@ class SevenEval :
 									# the value of the flush suit here.
 									if SUIT_COUNT > 4 :
 										self.flushCheck[SUIT_KEY] = suits[FLUSH_SUIT_INDEX]
-									
+
 									# Otherwise this is a non-flush hand.
 									else :
 										self.flushCheck[SUIT_KEY] = Constants.NOT_A_FLUSH
-		
+
 		return
-	
+
 	def getRankOfSeven(self, card_1, card_2, card_3, card_4, card_5, card_6, card_7) :
 		# Create a 7-card hand key by adding up each of the card keys.
 		KEY = self.deckcardsKey[card_1] + \
@@ -171,7 +171,7 @@ class SevenEval :
 		# Tear off the flush check strip.
 		FLUSH_CHECK_KEY = ( KEY & Constants.SUIT_BIT_MASK )
 		FLUSH_SUIT = self.flushCheck[FLUSH_CHECK_KEY]
-		
+
 		if FLUSH_SUIT == Constants.NOT_A_FLUSH :
 			# Tear off the non-flush key strip, and look up the rank.
 			KEY = ( KEY >> Constants.NON_FLUSH_BIT_SHIFT )
@@ -182,7 +182,7 @@ class SevenEval :
 			rank = self.rankArray[KEY] if KEY < Constants.CIRCUMFERENCE_SEVEN else self.rankArray[KEY - Constants.CIRCUMFERENCE_SEVEN]
 
 			return rank
-		
+
 		else :
 			print "flush"
 			# Generate a flush key, and look up the rank.
@@ -195,5 +195,5 @@ class SevenEval :
 						(self.deckcardsFlush[card_7] if self.deckcardsSuit[card_7] == FLUSH_SUIT else 0)
 			print FLUSH_KEY
 			return self.flushRankArray[FLUSH_KEY]
-		
+
 		return -1

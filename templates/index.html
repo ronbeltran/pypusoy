@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<body>
-		<fb:login-button autologoutlink="true" scope="publish_stream"></fb:login-button>
+		<fb:login-button autologoutlink="true" onlogin="checkLoginState();" scope="email, public_profile, publish_stream"></fb:login-button>
 		<div id="fb-root"></div>
 		{% if user %}
 		<p><a href="local:///index.html?access_token={{user.access_token}}">Back to Pusoy</a></p>
